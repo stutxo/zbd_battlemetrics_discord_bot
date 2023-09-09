@@ -1,3 +1,5 @@
+use std::{thread::sleep, time::Duration};
+
 use anyhow::Context as _;
 use poise::serenity_prelude as serenity;
 use shuttle_poise::ShuttlePoise;
@@ -25,6 +27,7 @@ async fn mint(
 
             let charge = Charge {
                 amount: new_amount,
+                description: "Buy Blood".to_string(),
                 ..Default::default()
             };
 
@@ -45,17 +48,22 @@ async fn mint(
                         let mut payed = false;
 
                         while !payed {
-                            match zebedee_client.get_charge(data.id.clone()).await {
-                                Ok(charge) => {
-                                    if let Some(data) = charge.data {
-                                        if data.status == "paid" {
-                                            payed = true;
-                                            ctx.say("payment accepted".to_string()).await?;
-                                        }
+                            sleep(Duration::from_millis(100));
+
+                            if let Ok(charge) = zebedee_client.get_charge(data.id.clone()).await {
+                                if let Some(data) = charge.data {
+                                    if data.status == "completed" {
+                                        payed = true;
+                                        ctx.say("payment accepted".to_string()).await?;
                                     }
-                                }
-                                Err(e) => {
-                                    ctx.say(format!("Failed to get charge: {}", e)).await?;
+                                    if data.status == "expired" {
+                                        payed = true;
+                                        ctx.say("payment expired".to_string()).await?;
+                                    }
+                                    if data.status == "error" {
+                                        payed = true;
+                                        ctx.say("payment error".to_string()).await?;
+                                    }
                                 }
                             }
                         }
