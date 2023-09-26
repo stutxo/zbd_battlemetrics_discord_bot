@@ -163,6 +163,8 @@ async fn mint(
                                         }
                                     }
                                 }
+                            } else {
+                                payed = true;
                             }
                         }
                     } else {
