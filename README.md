@@ -1,16 +1,45 @@
-# Poise Hello World Bot with Shuttle
+# Discord Bot For Game Servers To Accept Bitcoin. Uses Zebedee & Battlemetrics APIs, Written In Rust And Deployed With Shuttle.
 
-In this example we will deploy a Poise/Serenity bot with Shuttle that responds to the `/hello` command with `world!`. To run this bot we need a valid Discord Token. To get started log in to the [Discord developer portal](https://discord.com/developers/applications).
+This discord bot connects your game server to your Bitcoin lightning wallet via the Battlemetrics and Zebedee APIs. Any server command can be put behind a lightning bitcoin paywall, enabling game server owners to monetize their server through the sale of server VIP perks, ingame items & more.
 
-1. Click the New Application button, name your application and click Create.
-2. Navigate to the Bot tab in the lefthand menu, and add a new bot.
-3. On the bot page click the Reset Token button to reveal your token. Put this token in your `Secrets.toml`. It's very important that you don't reveal your token to anyone, as it can be abused. Create a `.gitignore` file to omit your `Secrets.toml` from version control.
-4. For the sake of this example, you also need to scroll down on the bot page to the Message Content Intent section and enable that option.
+To get started:
 
-To add the bot to a server we need to create an invite link.
+1. Clone this github repository to your local machine.
 
-1. On your bot's application page, open the OAuth2 page via the lefthand panel.
-2. Go to the URL Generator via the lefthand panel, and select the `bot` scope as well as the `Send Messages` permission in the Bot Permissions section.
-3. Copy the URL, open it in your browser and select a Discord server you wish to invite the bot to.
+`git clone https://github.com/stum0/zbd_discord_bot.git`
 
-For more information please refer to the [Discord docs](https://discord.com/developers/docs/getting-started) as well as the [Poise docs](https://docs.rs/poise) for more examples.
+2. Create a `Secrets.toml` file and copy your [Zebedee](https://zbd.dev), [Battlemetrics](https://www.battlemetrics.com/developers/documentation) & [Discord](https://discord.com/developers/docs/getting-started) bot secrets and your Battlemetrics server id:
+```
+DISCORD_TOKEN = 'discord'
+
+ZBD_TOKEN = 'zbd'
+
+SERVER_ID = 'id'
+
+BM_TOKEN = 'bm token'
+```
+3. Create a `.gitignore` file to omit your `Secrets.toml` from version control.
+
+
+
+In this example, at the time of writing, the only command provided is `/mint`. It takes `amount` and `player` as inputs and responds with a `lightning invoice` for the amount in satoshis (sats). The player name must match the ingame name of an online player. Once the invoice has been paid it will execute the ingame command `giveitem blood amount player` for the game Rust; this gives the player the amount of blood corresponding to the amount of sats they have paid. This is a specific use case for the [Orange](https://orangem.art) Rust server. 
+
+Another useful server command that could be put behind a lightning bitcoin paywall is `oxide.usergroup add user group` to sell access for players to VIP groups with ingame perks (e.g. permission to use plugins, queue skip etc). This would work for games that use the [uMod](https://umod.org/documentation/plugins/permissions) plugin platform. 
+
+The Battlemetrics RCON supports 30+ games, including Battlebit, CS:GO, DayZ, Minecraft, Rust, Team Fortress 2 & Valheim. [How to execute RCON commands](https://github.com/BloodfallenTear/BMSharp/blob/master/docs/RCON.md) via the Battlemetrics API. 
+
+`https://api.battlemetrics.com/servers/$SERVER_ID/command`
+
+```
+{
+   "data":{
+      "type":"rconCommand",
+      "attributes":{
+         "command":"raw",
+         "options":{
+            "raw":"$COMMAND_NAME"
+         }
+      }
+   }
+}
+```
