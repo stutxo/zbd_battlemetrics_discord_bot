@@ -20,7 +20,21 @@ BM_TOKEN = 'bm token'
 ```
 3. Create a `.gitignore` file to omit your `Secrets.toml` from version control.
 
+4. [Install](https://docs.shuttle.rs/getting-started/installation) [Shuttle](https://docs.shuttle.rs/introduction/welcome).
 
+`cargo install cargo-shuttle`
+
+5. Login to shuttle.
+
+`cargo shuttle login`
+
+6. Start your project with [idle minutes](https://docs.shuttle.rs/getting-started/idle-projects) set to 0 to keep it alive.
+
+`cargo shuttle project start --idle-minutes 0`
+
+7. Deploy your discord bot.
+
+` cargo shuttle deploy --allow-dirty`
 
 In this example, at the time of writing, the only command provided is `/mint`. It takes `amount` and `player` as inputs and responds with a `lightning invoice` for the amount in satoshis (sats). The player name must match the ingame name of an online player. Once the invoice has been paid it will execute the ingame command `giveitem blood amount player` for the game Rust; this gives the player the amount of blood corresponding to the amount of sats they have paid. This is a specific use case for the [Orange](https://orangem.art) Rust server. 
 
