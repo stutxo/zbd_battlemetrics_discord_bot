@@ -25,7 +25,7 @@ pub async fn mint(
             let charge = Charge {
                 amount: new_amount,
                 description: "Buy Blood".to_string(),
-                expires_in: 60,
+                expires_in: 30,
                 ..Default::default()
             };
 
