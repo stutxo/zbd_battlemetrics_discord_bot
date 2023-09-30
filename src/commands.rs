@@ -43,7 +43,7 @@ pub async fn mint(
                         }
 
                         loop {
-                            sleep(Duration::from_millis(5000));
+                            sleep(Duration::from_millis(1000));
 
                             match zebedee_client.get_charge(data.id.clone()).await {
                                 Ok(charge) => {
