@@ -51,6 +51,10 @@ pub async fn mint(
                                     if let Some(data) = charge.data {
                                         match data.status.as_str() {
                                             "completed" => {
+                                                println!(
+                                                    "{:?}: payment completed...minting blood...",
+                                                    name
+                                                );
                                                 mint_blood(
                                                     name.clone(),
                                                     amount.clone(),
@@ -58,12 +62,11 @@ pub async fn mint(
                                                     api_client,
                                                 )
                                                 .await?;
-                                                println!("payment completed.");
                                                 break;
                                             }
                                             "expired" => {
                                                 ctx.say("payment expired".to_string()).await?;
-                                                println!("payment expired.");
+                                                println!("{:?}: payment expired.", name);
                                                 break;
                                             }
                                             "error" => {
@@ -71,7 +74,7 @@ pub async fn mint(
                                                 break;
                                             }
                                             _ => {
-                                                println!("Waiting for payment...")
+                                                println!("{:?}: Waiting for payment...", name);
                                             }
                                         }
                                     }

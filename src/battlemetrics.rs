@@ -17,7 +17,7 @@ pub async fn mint_blood(
             r#"inventory.giveto "{}" "{}" {}"#,
             player_name, short_name, amount
         );
-        println!("Command: {}", command_name);
+        println!("{:?}: Running Command: {}", player_name, command_name);
 
         let rcon_data = RconData::new("rconCommand", "raw", &command_name);
 
@@ -52,10 +52,11 @@ pub async fn mint_blood(
                 res.text().await?
             ))
             .await?;
-            println!("blood failed to mint.");
+            println!("{:?} blood failed to mint.", player_name);
             Ok(())
         }
     } else {
+        println!("error minting blood");
         ctx.say("Failed to parse amount").await?;
         Ok(())
     }
