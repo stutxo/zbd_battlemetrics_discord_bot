@@ -1,7 +1,45 @@
-use crate::{
-    commands::{Context, Error},
-    RconData,
-};
+use serde::{Deserialize, Serialize};
+
+use crate::commands::{Context, Error};
+
+#[derive(Serialize, Deserialize, Debug)]
+struct CommandOptions {
+    raw: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct CommandAttributes {
+    command: String,
+    options: CommandOptions,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct RconCommand {
+    #[serde(rename = "type")]
+    type_field: String,
+    attributes: CommandAttributes,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RconData {
+    data: RconCommand,
+}
+
+impl RconData {
+    pub fn new(type_field: &str, command: &str, raw: &str) -> Self {
+        RconData {
+            data: RconCommand {
+                type_field: type_field.to_string(),
+                attributes: CommandAttributes {
+                    command: command.to_string(),
+                    options: CommandOptions {
+                        raw: raw.to_string(),
+                    },
+                },
+            },
+        }
+    }
+}
 
 pub async fn mint_blood(
     name: Option<String>,
