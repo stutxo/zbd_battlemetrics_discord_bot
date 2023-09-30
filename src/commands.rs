@@ -17,6 +17,8 @@ pub async fn mint(
     let zebedee_client = &ctx.data().zbd;
     let api_client = &ctx.data().api_client;
 
+    let name_str = name.as_deref().unwrap_or("User");
+
     if let Some(amount) = amount {
         if let Ok(mut num) = amount.parse::<i32>() {
             num *= 1000;
@@ -48,7 +50,7 @@ pub async fn mint(
                                                 e.title("Blood Invoice");
                                                 e.description(format!(
                                                     "{:?}, please pay {} sats to the following invoice to mint {} blood.",
-                                                    name, amount, amount
+                                                    name_str, amount, amount
                                                 ));
                                                 e.image("attachment://qr.png");
                                                 e.field("Amount", &amount, false);
@@ -63,10 +65,10 @@ pub async fn mint(
 
                                 match invoice_message {
                                     Ok(_) => {
-                                        println!("{:?}: invoice sent...", name);
+                                        println!("{:?}: invoice sent...", name_str);
                                     }
                                     Err(e) => {
-                                        println!("{:?}: Failed to send invoice: {}", name, e);
+                                        println!("{:?}: Failed to send invoice: {}", name_str, e);
                                     }
                                 };
 
@@ -120,7 +122,7 @@ pub async fn mint(
                                             "completed" => {
                                                 println!(
                                                     "{:?}: payment completed...minting blood...",
-                                                    name
+                                                    name_str
                                                 );
                                                 let mint = mint_blood(
                                                     name.clone(),
@@ -143,7 +145,7 @@ pub async fn mint(
                                                 if let Err(e) = reply {
                                                     println!("error: {}", e);
                                                 }
-                                                println!("{:?}: payment expired.", name);
+                                                println!("{:?}: payment expired.", name_str);
                                                 break;
                                             }
                                             "error" => {
@@ -158,7 +160,7 @@ pub async fn mint(
                                                 break;
                                             }
                                             _ => {
-                                                println!("{:?}: Waiting for payment...", name);
+                                                println!("{:?}: Waiting for payment...", name_str);
                                             }
                                         }
                                     }
