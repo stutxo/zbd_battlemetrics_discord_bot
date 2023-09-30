@@ -42,68 +42,43 @@ pub async fn mint(
                             }
                         }
 
-                        match zebedee_client.create_charge(&charge).await {
-                            Ok(invoice) => {
-                                if let Some(data) = invoice.data {
-                                    let request_data = data.invoice.request;
-                                    match serde_json::to_string(&request_data) {
-                                        Ok(serialized_request_data) => {
-                                            ctx.say(serialized_request_data).await?;
-                                        }
-                                        Err(e) => {
-                                            ctx.say(format!(
-                                                "Failed to serialize request data: {}",
-                                                e
-                                            ))
-                                            .await?;
-                                        }
-                                    }
+                        loop {
+                            sleep(Duration::from_millis(5000));
 
-                                    loop {
-                                        sleep(Duration::from_millis(5000));
-
-                                        match zebedee_client.get_charge(data.id.clone()).await {
-                                            Ok(charge) => {
-                                                if let Some(data) = charge.data {
-                                                    match data.status.as_str() {
-                                                        "completed" => {
-                                                            mint_blood(
-                                                                name.clone(),
-                                                                amount.clone(),
-                                                                ctx,
-                                                                api_client,
-                                                            )
-                                                            .await?;
-                                                            println!("payment completed.");
-                                                            break;
-                                                        }
-                                                        "expired" => {
-                                                            ctx.say("payment expired".to_string())
-                                                                .await?;
-                                                            println!("payment expired.");
-                                                            break;
-                                                        }
-                                                        "error" => {
-                                                            ctx.say("payment error".to_string())
-                                                                .await?;
-                                                            break;
-                                                        }
-                                                        _ => {
-                                                            println!("Waiting for payment...")
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            Err(_) => {
-                                                println!("error...");
+                            match zebedee_client.get_charge(data.id.clone()).await {
+                                Ok(charge) => {
+                                    if let Some(data) = charge.data {
+                                        match data.status.as_str() {
+                                            "completed" => {
+                                                mint_blood(
+                                                    name.clone(),
+                                                    amount.clone(),
+                                                    ctx,
+                                                    api_client,
+                                                )
+                                                .await?;
+                                                println!("payment completed.");
                                                 break;
+                                            }
+                                            "expired" => {
+                                                ctx.say("payment expired".to_string()).await?;
+                                                println!("payment expired.");
+                                                break;
+                                            }
+                                            "error" => {
+                                                ctx.say("payment error".to_string()).await?;
+                                                break;
+                                            }
+                                            _ => {
+                                                println!("Waiting for payment...")
                                             }
                                         }
                                     }
                                 }
-                            }
-                            Err(e) => {
-                                println!("Failed to create charge: {}", e);
+                                Err(_) => {
+                                    println!("error...");
+                                    break;
+                                }
                             }
                         }
                     } else {
