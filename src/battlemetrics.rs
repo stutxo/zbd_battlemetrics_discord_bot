@@ -42,7 +42,7 @@ pub async fn mint_blood(
         if res.status() == 200 {
             ctx.say(format!("{} has been payed {} blood", player_name, amount))
                 .await?;
-            println!("blood minted.");
+            println!("{:?} blood minted.", player_name);
             Ok(())
         } else {
             ctx.say(format!(
