@@ -1,5 +1,5 @@
+use qrcode_generator::QrCodeEcc;
 use std::{thread::sleep, time::Duration};
-
 use zebedee_rust::charges::*;
 
 use crate::{battlemetrics::mint_blood, Data};
@@ -25,7 +25,7 @@ pub async fn mint(
             let charge = Charge {
                 amount: new_amount,
                 description: "Buy Blood".to_string(),
-                expires_in: 30,
+                expires_in: 40,
                 ..Default::default()
             };
 
@@ -35,11 +35,78 @@ pub async fn mint(
                         let request_data = data.invoice.request;
                         match serde_json::to_string(&request_data) {
                             Ok(serialized_request_data) => {
-                                ctx.say(serialized_request_data).await?;
+                                let data = serialized_request_data.trim_matches('"').to_string();
+                                let qr_invoice: Vec<u8> = qrcode_generator::to_png_to_vec(
+                                    data.clone(),
+                                    QrCodeEcc::Low,
+                                    1024,
+                                )
+                                .unwrap();
+                                let invoice_message = ctx.channel_id()
+                                        .send_message(ctx.http(), |m| {
+                                            m.embed(|e| {
+                                                e.title("Blood Invoice");
+                                                e.description(format!(
+                                                    "{:?}, please pay {} sats to the following invoice to mint {} blood.",
+                                                    name, amount, amount
+                                                ));
+                                                e.image("attachment://qr.png");
+                                                e.field("Amount", &amount, false);
+                                                e.field("Expires in", "40 seconds", false);
+                                                e.field("Invoice: ", data.clone(), false);
+                                                e
+                                            });
+                                            m.add_file((qr_invoice.as_slice(), "qr.png"));
+                                            m
+                                        })
+                                        .await;
+
+                                match invoice_message {
+                                    Ok(_) => {
+                                        println!("{:?}: invoice sent...", name);
+                                    }
+                                    Err(e) => {
+                                        println!("{:?}: Failed to send invoice: {}", name, e);
+                                    }
+                                };
+
+                                // for seconds_left in (1..=28).rev() {
+                                //     sleep(Duration::from_millis(1000));
+
+                                //     // Update the message
+                                //     message
+                                //         .edit(ctx.http(), |m| {
+                                //             m.embed(|e| {
+                                //                 e.title("Blood Invoice");
+                                //                 e.description(format!(
+                                //                     "Please pay {} sats to the following invoice.",
+                                //                     amount
+                                //                 ));
+                                //                 e.image("attachment://qr.png");
+                                //                 e.field("Amount", &amount, false);
+                                //                 e.field(
+                                //                     "Expires in",
+                                //                     format!("{} seconds", seconds_left),
+                                //                     false,
+                                //                 );
+                                //                 e
+                                //             })
+                                //         })
+                                //         .await?;
+                                // }
                             }
                             Err(e) => {
-                                ctx.say(format!("Failed to serialize request data: {}", e))
-                                    .await?;
+                                let reply = ctx
+                                    .channel_id()
+                                    .say(
+                                        ctx.http(),
+                                        format!("Failed to serialize request data: {}", e),
+                                    )
+                                    .await;
+
+                                if let Err(e) = reply {
+                                    println!("error: {}", e);
+                                }
                             }
                         }
 
@@ -55,22 +122,39 @@ pub async fn mint(
                                                     "{:?}: payment completed...minting blood...",
                                                     name
                                                 );
-                                                mint_blood(
+                                                let mint = mint_blood(
                                                     name.clone(),
                                                     amount.clone(),
                                                     ctx,
                                                     api_client,
                                                 )
-                                                .await?;
+                                                .await;
+                                                if let Err(e) = mint {
+                                                    println!("mint error: {}", e);
+                                                }
                                                 break;
                                             }
                                             "expired" => {
-                                                ctx.say("payment expired".to_string()).await?;
+                                                let reply = ctx
+                                                    .channel_id()
+                                                    .say(ctx.http(), "payment expired")
+                                                    .await;
+
+                                                if let Err(e) = reply {
+                                                    println!("error: {}", e);
+                                                }
                                                 println!("{:?}: payment expired.", name);
                                                 break;
                                             }
                                             "error" => {
-                                                ctx.say("payment error".to_string()).await?;
+                                                let reply = ctx
+                                                    .channel_id()
+                                                    .say(ctx.http(), "payment error")
+                                                    .await;
+
+                                                if let Err(e) = reply {
+                                                    println!("error: {}", e);
+                                                }
                                                 break;
                                             }
                                             _ => {
@@ -86,16 +170,27 @@ pub async fn mint(
                             }
                         }
                     } else {
-                        ctx.say("Invoice data is empty.").await?;
+                        println!("invoice data error...");
                     }
                 }
                 Err(e) => {
-                    ctx.say(format!("Failed to create charge: {}", e)).await?;
+                    let reply = ctx
+                        .channel_id()
+                        .say(ctx.http(), format!("Failed to create charge: {}", e))
+                        .await;
+                    if let Err(e) = reply {
+                        println!("error: {}", e);
+                    }
                 }
             }
         } else {
-            ctx.say("Please enter a valid number for the amount.")
-                .await?;
+            let reply = ctx
+                .channel_id()
+                .say(ctx.http(), "Please enter a valid number for the amount.")
+                .await;
+            if let Err(e) = reply {
+                println!("error: {}", e);
+            }
         }
     }
 

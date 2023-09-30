@@ -1,3 +1,4 @@
+use poise::serenity_prelude::{self, builder};
 use serde::{Deserialize, Serialize};
 
 use crate::commands::{Context, Error};
@@ -59,7 +60,12 @@ pub async fn mint_blood(
 
         let rcon_data = RconData::new("rconCommand", "raw", &command_name);
 
-        let serialized_data = serde_json::to_string(&rcon_data).unwrap();
+        let serialized_data = if let Ok(data) = serde_json::to_string(&rcon_data) {
+            data
+        } else {
+            println!("error serializing data");
+            return Ok(());
+        };
 
         let server_id = ctx.data().server_id.clone();
         let url = format!(
@@ -78,24 +84,45 @@ pub async fn mint_blood(
             .await?;
 
         if res.status() == 200 {
-            ctx.say(format!("{} has been payed {} blood", player_name, amount))
-                .await?;
+            let reply = ctx
+                .channel_id()
+                .say(
+                    ctx.http(),
+                    format!("{} has been payed {} blood", player_name, amount),
+                )
+                .await;
+
+            if let Err(e) = reply {
+                println!("error: {}", e);
+            }
             println!("{:?} blood minted.", player_name);
             Ok(())
         } else {
-            ctx.say(format!(
-                "Failed to pay {} blood to {}. {}",
-                amount,
-                player_name,
-                res.text().await?
-            ))
-            .await?;
             println!("{:?} blood failed to mint.", player_name);
+            let reply = ctx
+                .channel_id()
+                .say(
+                    ctx.http(),
+                    format!("Failed to pay {} blood to {}.", amount, player_name),
+                )
+                .await;
+
+            if let Err(e) = reply {
+                println!("errror: {}", e);
+            }
+
             Ok(())
         }
     } else {
         println!("error minting blood");
-        ctx.say("Failed to parse amount").await?;
+
+        let reply = ctx
+            .channel_id()
+            .say(ctx.http(), "Failed to parse amount")
+            .await;
+        if let Err(e) = reply {
+            println!("errror: {}", e);
+        }
         Ok(())
     }
 }
