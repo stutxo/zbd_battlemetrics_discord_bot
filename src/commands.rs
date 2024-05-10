@@ -35,8 +35,20 @@ pub async fn mint(
             match zebedee_client.create_charge(&charge).await {
                 Ok(invoice) => {
                     if let Some(request_data) = invoice.data {
-                        let requested_invoice = request_data.invoice;
-                        match serde_json::to_string(&requested_invoice) {
+                        let requested_invoice =
+                            if let Some(requested_invoice) = request_data.invoice {
+                                requested_invoice
+                            } else {
+                                let reply = ctx
+                                    .channel_id()
+                                    .say(ctx.http(), "Failed to get invoice data.")
+                                    .await;
+                                if let Err(e) = reply {
+                                    println!("error: {}", e);
+                                }
+                                return Ok(());
+                            };
+                        match serde_json::to_string(&requested_invoice.request) {
                             Ok(serialized_request_data) => {
                                 let data = serialized_request_data.trim_matches('"').to_string();
                                 let qr_invoice: Vec<u8> = qrcode_generator::to_png_to_vec(
