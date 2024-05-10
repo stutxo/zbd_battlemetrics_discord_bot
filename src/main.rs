@@ -38,7 +38,7 @@ async fn poise(#[shuttle_runtime::Secrets] secret_store: SecretStore) -> Shuttle
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![mint()],
+            commands: vec![giveblood()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {

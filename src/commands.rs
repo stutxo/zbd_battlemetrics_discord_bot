@@ -10,7 +10,7 @@ pub type Context<'a> = poise::Context<'a, Data, Error>;
 
 /// Responds with ln invoice
 #[poise::command(prefix_command, track_edits, aliases("amount, name"), slash_command)]
-pub async fn mint(
+pub async fn giveblood(
     ctx: Context<'_>,
     #[description = "blood amount to buy"] amount: Option<String>,
     #[description = "In game name"] name: Option<String>,
@@ -58,7 +58,7 @@ pub async fn mint(
                                 )
                                 .unwrap();
 
-                                let description = format!("{:?}, please pay {} sats to the following invoice to mint {} blood.", name_str, amount, amount);
+                                let description = format!("{:?}, please pay {} sats to the following invoice to give {} blood.", name_str, amount, amount);
 
                                 let embed = CreateEmbed::new()
                                     .title("Blood Invoice")
@@ -111,18 +111,18 @@ pub async fn mint(
                                         match data.status.as_str() {
                                             "completed" => {
                                                 println!(
-                                                    "{:?}: payment completed...minting blood...",
+                                                    "{:?}: payment completed...sending blood...",
                                                     name_str
                                                 );
-                                                let mint = mint_blood(
+                                                let give_blood = mint_blood(
                                                     name.clone(),
                                                     amount.clone(),
                                                     ctx,
                                                     api_client,
                                                 )
                                                 .await;
-                                                if let Err(e) = mint {
-                                                    println!("mint error: {}", e);
+                                                if let Err(e) = give_blood {
+                                                    println!("sending blood error: {}", e);
                                                 }
                                                 break;
                                             }
