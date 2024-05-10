@@ -1,4 +1,3 @@
-use poise::serenity_prelude::{self, builder};
 use serde::{Deserialize, Serialize};
 
 use crate::commands::{Context, Error};

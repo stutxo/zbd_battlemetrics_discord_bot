@@ -1,3 +1,4 @@
+use poise::serenity_prelude::{CreateAttachment, CreateEmbed, CreateMessage};
 use qrcode_generator::QrCodeEcc;
 use std::{thread::sleep, time::Duration};
 use zebedee_rust::charges::*;
@@ -33,9 +34,9 @@ pub async fn mint(
 
             match zebedee_client.create_charge(&charge).await {
                 Ok(invoice) => {
-                    if let Some(data) = invoice.data {
-                        let request_data = data.invoice.request;
-                        match serde_json::to_string(&request_data) {
+                    if let Some(request_data) = invoice.data {
+                        let requested_invoice = request_data.invoice;
+                        match serde_json::to_string(&requested_invoice) {
                             Ok(serialized_request_data) => {
                                 let data = serialized_request_data.trim_matches('"').to_string();
                                 let qr_invoice: Vec<u8> = qrcode_generator::to_png_to_vec(
@@ -44,24 +45,26 @@ pub async fn mint(
                                     1024,
                                 )
                                 .unwrap();
-                                let invoice_message = ctx.channel_id()
-                                        .send_message(ctx.http(), |m| {
-                                            m.embed(|e| {
-                                                e.title("Blood Invoice");
-                                                e.description(format!(
-                                                    "{:?}, please pay {} sats to the following invoice to mint {} blood.",
-                                                    name_str, amount, amount
-                                                ));
-                                                e.image("attachment://qr.png");
-                                                e.field("Amount", &amount, false);
-                                                e.field("Expires in", "40 seconds", false);
-                                                e.field("Invoice: ", data.clone(), false);
-                                                e
-                                            });
-                                            m.add_file((qr_invoice.as_slice(), "qr.png"));
-                                            m
-                                        })
-                                        .await;
+
+                                let description = format!("{:?}, please pay {} sats to the following invoice to mint {} blood.", name_str, amount, amount);
+
+                                let embed = CreateEmbed::new()
+                                    .title("Blood Invoice")
+                                    .description(description)
+                                    .fields(vec![
+                                        ("Amount", amount.clone(), false),
+                                        ("Expires in", "40 seconds".to_string(), false),
+                                        ("Invoice: ", data.clone(), false),
+                                    ]);
+
+                                let attachment =
+                                    CreateAttachment::bytes(qr_invoice.as_slice(), "qr.png");
+
+                                let builder =
+                                    CreateMessage::new().embed(embed).add_file(attachment);
+
+                                let invoice_message =
+                                    ctx.channel_id().send_message(&ctx.http(), builder).await;
 
                                 match invoice_message {
                                     Ok(_) => {
@@ -71,31 +74,6 @@ pub async fn mint(
                                         println!("{:?}: Failed to send invoice: {}", name_str, e);
                                     }
                                 };
-
-                                // for seconds_left in (1..=28).rev() {
-                                //     sleep(Duration::from_millis(1000));
-
-                                //     // Update the message
-                                //     message
-                                //         .edit(ctx.http(), |m| {
-                                //             m.embed(|e| {
-                                //                 e.title("Blood Invoice");
-                                //                 e.description(format!(
-                                //                     "Please pay {} sats to the following invoice.",
-                                //                     amount
-                                //                 ));
-                                //                 e.image("attachment://qr.png");
-                                //                 e.field("Amount", &amount, false);
-                                //                 e.field(
-                                //                     "Expires in",
-                                //                     format!("{} seconds", seconds_left),
-                                //                     false,
-                                //                 );
-                                //                 e
-                                //             })
-                                //         })
-                                //         .await?;
-                                // }
                             }
                             Err(e) => {
                                 let reply = ctx
@@ -115,7 +93,7 @@ pub async fn mint(
                         loop {
                             sleep(Duration::from_millis(1000));
 
-                            match zebedee_client.get_charge(data.id.clone()).await {
+                            match zebedee_client.get_charge(request_data.id.clone()).await {
                                 Ok(charge) => {
                                     if let Some(data) = charge.data {
                                         match data.status.as_str() {

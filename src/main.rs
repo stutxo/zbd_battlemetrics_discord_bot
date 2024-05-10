@@ -1,7 +1,7 @@
 use anyhow::Context as _;
-use poise::serenity_prelude as serenity;
-use shuttle_poise::ShuttlePoise;
-use shuttle_secrets::SecretStore;
+use poise::serenity_prelude::{ClientBuilder, GatewayIntents};
+use shuttle_runtime::SecretStore;
+use shuttle_serenity::ShuttleSerenity;
 use zebedee_rust::ZebedeeClient;
 
 mod commands;
@@ -17,12 +17,12 @@ pub struct Data {
 }
 
 #[shuttle_runtime::main]
-async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> ShuttlePoise<Data, Error> {
+async fn poise(#[shuttle_runtime::Secrets] secret_store: SecretStore) -> ShuttleSerenity {
     let zbd_token = secret_store
         .get("ZBD_TOKEN")
         .context("'ZBD_TOKEN' was not found")?;
 
-    let zebedee_client = ZebedeeClient::new().apikey(zbd_token).build();
+    let zebedee_client = ZebedeeClient::new(zbd_token);
 
     let api_client = reqwest::Client::new();
 
@@ -41,8 +41,6 @@ async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> Shuttle
             commands: vec![mint()],
             ..Default::default()
         })
-        .token(discord_token)
-        .intents(serenity::GatewayIntents::non_privileged())
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
@@ -54,9 +52,12 @@ async fn poise(#[shuttle_secrets::Secrets] secret_store: SecretStore) -> Shuttle
                 })
             })
         })
-        .build()
+        .build();
+
+    let client = ClientBuilder::new(discord_token, GatewayIntents::non_privileged())
+        .framework(framework)
         .await
         .map_err(shuttle_runtime::CustomError::new)?;
 
-    Ok(framework.into())
+    Ok(client.into())
 }
