@@ -210,7 +210,6 @@ dependencies = [
  "shuttle-runtime",
  "shuttle-serenity",
  "tokio",
- "tracing",
  "zebedee-rust",
 ]
 
