@@ -1,5 +1,4 @@
 use anyhow::Context as _;
-use battlemetrics::unmute_player;
 use poise::serenity_prelude::{ClientBuilder, GatewayIntents};
 use shuttle_runtime::SecretStore;
 use shuttle_serenity::ShuttleSerenity;

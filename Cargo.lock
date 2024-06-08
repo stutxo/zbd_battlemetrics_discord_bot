@@ -198,22 +198,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "blood"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "poise",
- "qrcode-generator",
- "reqwest 0.12.4",
- "serde",
- "serde_json",
- "shuttle-runtime",
- "shuttle-serenity",
- "tokio",
- "zebedee-rust",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3367,6 +3351,22 @@ checksum = "a277a57398d4bfa075df44f501a17cfdf8542d224f0d36095a2adc7aee4ef0a5"
 dependencies = [
  "cfg-if",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "zbd_battlemetrics_bot"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "poise",
+ "qrcode-generator",
+ "reqwest 0.12.4",
+ "serde",
+ "serde_json",
+ "shuttle-runtime",
+ "shuttle-serenity",
+ "tokio",
+ "zebedee-rust",
 ]
 
 [[package]]

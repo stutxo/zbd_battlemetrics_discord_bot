@@ -195,7 +195,7 @@ pub async fn giveblood(
 #[poise::command(prefix_command, track_edits, aliases("name"), slash_command)]
 pub async fn unmute(
     ctx: Context<'_>,
-    #[description = "In game name"] name: Option<String>,
+    #[description = "In game name to unmute"] name: Option<String>,
 ) -> Result<(), Error> {
     let zebedee_client = &ctx.data().zbd;
     let api_client = &ctx.data().api_client;
