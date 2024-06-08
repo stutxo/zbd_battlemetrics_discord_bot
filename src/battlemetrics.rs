@@ -135,7 +135,7 @@ pub async fn unmute_player(
         let player_name = name;
         let short_name = "unmute";
 
-        let command_name = format!(r#"inventory.giveto "{}" "{}" "#, player_name, short_name);
+        let command_name = format!(r#"unmute player "{}" "{}" "#, player_name, short_name);
         println!("{:?}: Running Command: {}", player_name, command_name);
 
         let rcon_data = RconData::new("rconCommand", "raw", &command_name);
