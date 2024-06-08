@@ -203,7 +203,8 @@ pub async fn unmute(
     let name_str = name.as_deref().unwrap_or("User");
 
     //how much should this be?
-    let new_amount = 1000;
+    let amount = 1000;
+    let new_amount = amount * 1000;
 
     let charge = Charge {
         amount: new_amount.to_string(),
@@ -236,14 +237,14 @@ pub async fn unmute(
 
                         let description = format!(
                             "{:?}, please pay {} sats to the following invoice to unmute {}.",
-                            name_str, new_amount, name_str
+                            name_str, amount, name_str
                         );
 
                         let embed = CreateEmbed::new()
                             .title("Blood Invoice")
                             .description(description)
                             .fields(vec![
-                                ("Amount", new_amount.to_string().clone(), false),
+                                ("Amount", amount.to_string().clone(), false),
                                 ("Expires in", "40 seconds".to_string(), false),
                                 ("Invoice: ", data.clone(), false),
                             ]);
