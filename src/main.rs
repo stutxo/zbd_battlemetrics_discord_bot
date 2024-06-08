@@ -1,4 +1,5 @@
 use anyhow::Context as _;
+use battlemetrics::unmute_player;
 use poise::serenity_prelude::{ClientBuilder, GatewayIntents};
 use shuttle_runtime::SecretStore;
 use shuttle_serenity::ShuttleSerenity;
@@ -38,7 +39,7 @@ async fn poise(#[shuttle_runtime::Secrets] secret_store: SecretStore) -> Shuttle
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![giveblood()],
+            commands: vec![giveblood(), unmute()],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
