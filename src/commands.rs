@@ -202,7 +202,6 @@ pub async fn unmute(
 
     let name_str = name.as_deref().unwrap_or("User");
 
-    //how much should this be?
     let amount = 1000;
     let new_amount = amount * 1000;
 
